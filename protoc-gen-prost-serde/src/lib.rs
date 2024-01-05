@@ -21,7 +21,6 @@ pub fn execute(raw_request: &[u8]) -> protoc_gen_prost::Result {
     }
 
     let module_request_set = ModuleRequestSet::new(
-        request.file_to_generate,
         request.proto_file,
         raw_request,
         params.default_package_filename.as_deref(),

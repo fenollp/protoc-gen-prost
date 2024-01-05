@@ -1,10 +1,6 @@
 #![doc = include_str!("../README.md")]
 
-use std::{
-    borrow::Cow,
-    collections::{BTreeMap, HashSet},
-    fmt, str,
-};
+use std::{borrow::Cow, collections::BTreeMap, fmt, str};
 
 use once_cell::sync::Lazy;
 use prost::Message;
@@ -26,7 +22,6 @@ pub fn execute(raw_request: &[u8]) -> generator::Result {
     let params = request.parameter().parse::<Parameters>()?;
 
     let module_request_set = ModuleRequestSet::new(
-        request.file_to_generate,
         request.proto_file,
         raw_request,
         params.prost.default_package_filename(),
@@ -51,46 +46,34 @@ impl ModuleRequestSet {
     /// Construct a new module request set from an encoded [`CodeGeneratorRequest`]
     ///
     /// [`CodeGeneratorRequest`]: prost_types::compiler::CodeGeneratorRequest
-    pub fn new<I>(
-        input_protos: I,
+    pub fn new(
         proto_file: Vec<FileDescriptorProto>,
         raw_request: &[u8],
         default_package_filename: Option<&str>,
-    ) -> std::result::Result<Self, prost::DecodeError>
-    where
-        I: IntoIterator<Item = String>,
-    {
+    ) -> std::result::Result<Self, prost::DecodeError> {
         let raw_protos = RawProtos::decode(raw_request)?;
 
         Ok(Self::new_decoded(
-            input_protos,
             proto_file,
             raw_protos,
             default_package_filename.unwrap_or("_"),
         ))
     }
 
-    fn new_decoded<I>(
-        input_protos: I,
+    fn new_decoded(
         proto_file: Vec<FileDescriptorProto>,
         raw_protos: RawProtos,
         default_package_filename: &str,
-    ) -> Self
-    where
-        I: IntoIterator<Item = String>,
-    {
-        let input_protos: HashSet<_> = input_protos.into_iter().collect();
-
+    ) -> Self {
         let requests = proto_file.into_iter().zip(raw_protos.proto_file).fold(
             BTreeMap::new(),
             |mut acc, (proto, raw)| {
                 let module = Module::from_protobuf_package_name(proto.package());
-                let proto_filename = proto.name();
                 let entry = acc
                     .entry(module)
                     .or_insert_with(|| ModuleRequest::new(proto.package().to_owned()));
 
-                if entry.output_filename().is_none() && input_protos.contains(proto_filename) {
+                if entry.output_filename().is_none() {
                     let filename = match proto.package() {
                         "" => default_package_filename.to_owned(),
                         package => format!("{package}.rs"),
