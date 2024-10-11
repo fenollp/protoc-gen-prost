@@ -444,8 +444,7 @@ dependencies = [
 [[package]]
 name = "prost-validate-types"
 version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "355e1cdecc7161298a77d8aa50927c584831554a3874bf4ed99563804d598f18"
+source = "git+https://github.com/fenollp/prost-validate.git?branch=tweaks-for--linka-cloud--protoc-gen-prost-validate--pr107#52ae220259cfbfaa2a9840a626c59d75d78c8100"
 dependencies = [
  "anyhow",
  "once_cell",
